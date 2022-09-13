@@ -58,17 +58,19 @@ class PostAPI:
         return self.crud.create_item(post)
 
     @router.get("/posts/", tags=['Posts'])
-    def read_users(self, skip: int = 0, limit: int = 100):
+    def read_posts(self, skip: int = 0, limit: int = 100):
         posts = self.crud.get_items(skip, limit)
         return posts
 
     @router.get("/posts/{post_id}", tags=['Posts'])
-    def read_user(self, post_id: int):
+    def read_post(self, post_id: int):
         post = self.crud.get_item(pk=post_id)
         if post is None:
             raise HTTPException(status_code=404, detail="Post not found")
         return post
 
     @router.delete("/posts/{post_id}", tags=['Posts'])
-    def delete_user(self, post_id: int):
+    def delete_post(self, post_id: int):
         self.crud.delete_item(post_id)
+
+
