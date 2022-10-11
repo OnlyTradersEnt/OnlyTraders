@@ -5,8 +5,8 @@ from fastapi import Query
 from pydantic import BaseModel, EmailStr
 
 
-# properties required during user creation
 class UserCreate(BaseModel):
+    """ properties required during user creation """
     username: str
     email: EmailStr
     hashed_password: str
@@ -19,3 +19,9 @@ class UserGet(BaseModel):
     username: Optional[str] = Query(alias="name")
     is_active: Optional[bool] = Query()
     create_time: Optional[date] = Query()
+
+
+class UserUpdate(BaseModel):
+    """ Query params for update request """
+    username: Optional[str]
+    is_active: Optional[bool]

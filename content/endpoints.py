@@ -9,8 +9,8 @@ from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
 
 from content.crud import UserCrud, PostCrud
-from content.schemas.post import PostCreate, PostSearch
-from content.schemas.user import UserCreate, UserGet
+from content.schemas.post import PostCreate, PostSearch, PostUpdate
+from content.schemas.user import UserCreate, UserGet, UserUpdate
 from db import get_db
 
 router = InferringRouter()  # import this router in main and include it in app
@@ -46,7 +46,11 @@ class UserAPI:
 
     @router.delete("/{user_id}")
     def delete_user(self, user_id: int):
-        self.crud.delete_item(user_id)
+        return self.crud.delete_item(user_id)
+
+    @router.put("/{user_id}")
+    def update_user(self, user_id: int, params: UserUpdate):
+        return self.crud.update_item(user_id, **params.dict(exclude_none=True, exclude_unset=True))
 
 
 @cbv(router)
@@ -76,4 +80,8 @@ class PostAPI:
 
     @router.delete("/{post_id}")
     def delete_post(self, post_id: int):
-        self.crud.delete_item(post_id)
+        return self.crud.delete_item(post_id)
+
+    @router.put("/{post_id}")
+    def update_post(self, post_id: int, params: PostUpdate):
+        return self.crud.update_item(post_id, **params.dict(exclude_none=True, exclude_unset=True))
