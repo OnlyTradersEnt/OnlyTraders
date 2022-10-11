@@ -1,5 +1,7 @@
 from datetime import date
+from typing import Optional
 
+from fastapi import Query
 from pydantic import BaseModel, EmailStr
 
 
@@ -11,11 +13,9 @@ class UserCreate(BaseModel):
     create_time: date
 
 
-class ShowUser(BaseModel):
-    username: str
-    email: EmailStr
-    is_active: bool
-    create_time: date
-
-    class Config:  # tells pydantic to convert even non dict obj to json
-        orm_mode = True
+class UserGet(BaseModel):
+    """ Query params for GET request """
+    id: Optional[int] = Query(alias='pk')
+    username: Optional[str] = Query(alias="name")
+    is_active: Optional[bool] = Query()
+    create_time: Optional[date] = Query()

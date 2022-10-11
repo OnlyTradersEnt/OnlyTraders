@@ -1,9 +1,11 @@
 from typing import Optional
 
+from fastapi import Query
 from pydantic import BaseModel
 
 
 class PostBase(BaseModel):
+    id: Optional[int] = None
     title: Optional[str] = None
     description: Optional[str] = None
 
@@ -13,10 +15,7 @@ class PostCreate(PostBase):
     description: str
 
 
-# this will be used to format the response to not to have id,owner_id etc
-class ShowPost(PostBase):
-    title: str
-    description: Optional[str]
-
-    class Config():  # to convert non dict obj to json
-        orm_mode = True
+class PostSearch(BaseModel):
+    """ Query params for get request"""
+    id: Optional[int] = Query(alias='pk')
+    title: Optional[str] = Query(alias="subject")

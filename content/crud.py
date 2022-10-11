@@ -19,9 +19,11 @@ class AbstractCrud:
     model: Base = NotImplemented
     session: Session = NotImplemented
 
-    def get_items(self, *args, **kwargs):
+    def get_items(self, limit,  **filters):
         """ Read operation """
-        return self.session.query(self.model).all()
+        if not filters:
+            return []
+        return self.session.query(self.model).filter_by(**filters).limit(limit).all()
 
     def get_item(self, pk: int):
         return self.session.query(self.model).get(pk)

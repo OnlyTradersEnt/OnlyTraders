@@ -5,14 +5,12 @@
 """
 
 from fastapi import Depends, HTTPException
-# from fastapi_utils.cbv import cbv
-# from fastapi_utils.inferring_router import InferringRouter
 from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
 
-from content.crud import UserCrud, PostCrud, AbstractCrud
-from content.schemas.post import PostCreate
-from content.schemas.user import UserCreate
+from content.crud import UserCrud, PostCrud
+from content.schemas.post import PostCreate, PostSearch
+from content.schemas.user import UserCreate, UserGet
 from db import get_db
 
 router = InferringRouter()  # import this router in main and include it in app
@@ -35,8 +33,8 @@ class UserAPI:
         return self.crud.create_item(user)
 
     @router.get("/repository")
-    def read_users(self, skip: int = 0, limit: int = 100):
-        users = self.crud.get_items(skip, limit)
+    def read_users(self, limit: int = 100,  filters: UserGet = Depends()):
+        users = self.crud.get_items(limit, **filters.dict(exclude_unset=True, exclude_none=True))
         return users
 
     @router.get("/{user_id}")
@@ -65,8 +63,8 @@ class PostAPI:
         return self.crud.create_item(post)
 
     @router.get("/repository")
-    def read_posts(self, skip: int = 0, limit: int = 100):
-        posts = self.crud.get_items(skip, limit)
+    def read_posts(self, limit: int = 100, filters: PostSearch = Depends()):
+        posts = self.crud.get_items(limit, **filters.dict(exclude_none=True, exclude_unset=True))
         return posts
 
     @router.get("/{post_id}")
