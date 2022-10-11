@@ -26,7 +26,10 @@ class AbstractCrud:
         return self.session.query(self.model).filter_by(**filters).limit(limit).all()
 
     def get_item(self, pk: int):
-        return self.session.query(self.model).get(pk)
+        obj = self.session.query(self.model).get(pk)
+        if not obj:
+            raise HTTPException(status_code=404, detail=f"{self.model.__name__} not found")
+        return obj
 
     def create_item(self, obj: BaseModel):
         """ Create operation """
@@ -39,8 +42,6 @@ class AbstractCrud:
     def update_item(self, pk: int, **params):
         """ Update operation"""
         obj = self.get_item(pk)
-        if not obj:
-            raise HTTPException(status_code=404, detail="{self.model.__name__} not found")
         for var, value in params.items():
             setattr(obj, var, value) if value else None
         self.session.add(obj)

@@ -40,8 +40,6 @@ class UserAPI:
     @router.get("/{user_id}")
     def read_user(self, user_id: int):
         db_user = self.crud.get_item(pk=user_id)
-        if db_user is None:
-            raise HTTPException(status_code=404, detail="User not found")
         return db_user
 
     @router.delete("/{user_id}")
@@ -74,8 +72,6 @@ class PostAPI:
     @router.get("/{post_id}")
     def read_post(self, post_id: int):
         post = self.crud.get_item(pk=post_id)
-        if post is None:
-            raise HTTPException(status_code=404, detail="Post not found")
         return post
 
     @router.delete("/{post_id}")
