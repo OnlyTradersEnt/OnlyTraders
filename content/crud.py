@@ -7,7 +7,7 @@
                                         |-inherit
     Specific model operations -> class that extends the CRUD operations
 """
-
+from fastapi import HTTPException
 from pydantic.main import BaseModel
 from sqlalchemy.orm import Session
 
@@ -19,12 +19,17 @@ class AbstractCrud:
     model: Base = NotImplemented
     session: Session = NotImplemented
 
-    def get_items(self, *args, **kwargs):
+    def get_items(self, limit,  **filters):
         """ Read operation """
-        return self.session.query(self.model).all()
+        if not filters:
+            return []
+        return self.session.query(self.model).filter_by(**filters).limit(limit).all()
 
     def get_item(self, pk: int):
-        return self.session.query(self.model).get(pk)
+        obj = self.session.query(self.model).get(pk)
+        if not obj:
+            raise HTTPException(status_code=404, detail=f"{self.model.__name__} not found")
+        return obj
 
     def create_item(self, obj: BaseModel):
         """ Create operation """
@@ -34,10 +39,15 @@ class AbstractCrud:
         self.session.refresh(db_item)
         return db_item
 
-    def update_item(self, *args, **kwargs):
+    def update_item(self, pk: int, **params):
         """ Update operation"""
-        # todo
-        NotImplemented
+        obj = self.get_item(pk)
+        for var, value in params.items():
+            setattr(obj, var, value) if value else None
+        self.session.add(obj)
+        self.session.commit()
+        self.session.refresh(obj)
+        return obj
 
     def delete_item(self, pk: int):
         """ Delete operation """

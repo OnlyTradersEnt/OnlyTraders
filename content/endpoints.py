@@ -5,70 +5,79 @@
 """
 
 from fastapi import Depends, HTTPException
-from fastapi_utils.cbv import cbv
-from fastapi_utils.inferring_router import InferringRouter
+from fastapi_restful.cbv import cbv
+from fastapi_restful.inferring_router import InferringRouter
+
 from content.crud import UserCrud, PostCrud
-from content.schemas.post import PostCreate
-from content.schemas.user import UserCreate
+from content.schemas.post import PostCreate, PostSearch, PostUpdate
+from content.schemas.user import UserCreate, UserGet, UserUpdate
 from db import get_db
 
 router = InferringRouter()  # import this router in main and include it in app
 
-# todo remove repetitive tag assignments
+
 # todo create generic crud apis?
 # todo add documentation
 
-
 @cbv(router)
 class UserAPI:
+    router.tags = ["User"]
+    router.prefix = "/users"
 
     def __init__(self, session=Depends(get_db)):
         self.session = session
         self.crud = UserCrud(self.session)
 
-    @router.post("/user", tags=['User'])
+    @router.post("/create")
     def create_user(self, user: UserCreate):
         return self.crud.create_item(user)
 
-    @router.get("/users/", tags=['User'])
-    def read_users(self, skip: int = 0, limit: int = 100):
-        users = self.crud.get_items(skip, limit)
+    @router.get("/repository")
+    def read_users(self, limit: int = 100,  filters: UserGet = Depends()):
+        users = self.crud.get_items(limit, **filters.dict(exclude_unset=True, exclude_none=True))
         return users
 
-    @router.get("/users/{user_id}", tags=['User'])
+    @router.get("/{user_id}")
     def read_user(self, user_id: int):
         db_user = self.crud.get_item(pk=user_id)
-        if db_user is None:
-            raise HTTPException(status_code=404, detail="User not found")
         return db_user
 
-    @router.delete("/users/{user_id}", tags=['User'])
+    @router.delete("/{user_id}")
     def delete_user(self, user_id: int):
-        self.crud.delete_item(user_id)
+        return self.crud.delete_item(user_id)
+
+    @router.put("/{user_id}")
+    def update_user(self, user_id: int, params: UserUpdate):
+        return self.crud.update_item(user_id, **params.dict(exclude_none=True, exclude_unset=True))
 
 
 @cbv(router)
 class PostAPI:
+    router.tags = ["Post"]
+    router.prefix = "/posts"
+
     def __init__(self, session=Depends(get_db)):
         self.session = session
         self.crud = PostCrud(self.session)
 
-    @router.post("/post", tags=['Posts'])
+    @router.post("/create")
     def create_post(self, post: PostCreate):
         return self.crud.create_item(post)
 
-    @router.get("/posts/", tags=['Posts'])
-    def read_users(self, skip: int = 0, limit: int = 100):
-        posts = self.crud.get_items(skip, limit)
+    @router.get("/repository")
+    def read_posts(self, limit: int = 100, filters: PostSearch = Depends()):
+        posts = self.crud.get_items(limit, **filters.dict(exclude_none=True, exclude_unset=True))
         return posts
 
-    @router.get("/posts/{post_id}", tags=['Posts'])
-    def read_user(self, post_id: int):
+    @router.get("/{post_id}")
+    def read_post(self, post_id: int):
         post = self.crud.get_item(pk=post_id)
-        if post is None:
-            raise HTTPException(status_code=404, detail="Post not found")
         return post
 
-    @router.delete("/posts/{post_id}", tags=['Posts'])
-    def delete_user(self, post_id: int):
-        self.crud.delete_item(post_id)
+    @router.delete("/{post_id}")
+    def delete_post(self, post_id: int):
+        return self.crud.delete_item(post_id)
+
+    @router.put("/{post_id}")
+    def update_post(self, post_id: int, params: PostUpdate):
+        return self.crud.update_item(post_id, **params.dict(exclude_none=True, exclude_unset=True))
