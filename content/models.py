@@ -1,7 +1,7 @@
 """ Create all models here """
 from datetime import date
 
-from sqlalchemy import Boolean, Column, Integer, String, Date, BLOB, ForeignKey, LargeBinary
+from sqlalchemy import Boolean, Column, Integer, String, Date, ForeignKey, LargeBinary
 from sqlalchemy.orm import relationship
 
 from db import Base
@@ -37,6 +37,8 @@ class User(Base):
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
     create_time = Column(Date, nullable=False, default=date.today())
+    profile_pic_id = Column(Integer, ForeignKey('media.id'), nullable=True)
+    profile_pic = relationship("Media")
 
 
 class Post(Base):

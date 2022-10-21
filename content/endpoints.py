@@ -3,17 +3,16 @@
 
     NOTE: DO NOT IMPORT MAIN HERE TO AVOID CIRCULAR IMPORT ERROR
 """
-import os
-from io import BytesIO
+from typing import List
 
-from fastapi import Depends, UploadFile, File, Form, HTTPException
+from fastapi import Depends, UploadFile, File, Form
 from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
 
-from content.crud import UserCrud, PostCrud, MediaCrud
-from content.schemas.media import MediaCreate
+from content.crud import UserCrud, PostCrud
 from content.schemas.post import PostCreate, PostSearch, PostUpdate
-from content.schemas.user import UserCreate, UserGet, UserUpdate
+from content.schemas.user import UserCreate, UserGet, UserUpdate, UserFilters
+from content.service import MediaService
 from db import get_db
 
 router = InferringRouter()  # import this router in main and include it in app
@@ -30,17 +29,18 @@ class UserAPI:
     def __init__(self, session=Depends(get_db)):
         self.session = session
         self.crud = UserCrud(self.session)
+        self.media_service = MediaService(self.session)
 
     @router.post("/create")
     def create_user(self, user: UserCreate):
         return self.crud.create_item(user)
 
-    @router.get("/repository")
-    def read_users(self, limit: int = 100, filters: UserGet = Depends()):
+    @router.get("/repository", response_model=List[UserGet])
+    def read_users(self, limit: int = 100, filters: UserFilters = Depends()):
         users = self.crud.get_items(limit, **filters.dict(exclude_unset=True, exclude_none=True))
         return users
 
-    @router.get("/{user_id}")
+    @router.get("/{user_id}", response_model=UserGet)
     def read_user(self, user_id: int):
         db_user = self.crud.get_item(pk=user_id)
         return db_user
@@ -49,9 +49,15 @@ class UserAPI:
     def delete_user(self, user_id: int):
         return self.crud.delete_item(user_id)
 
-    @router.put("/{user_id}")
+    @router.put("/{user_id}", response_model=UserGet)
     def update_user(self, user_id: int, params: UserUpdate):
         return self.crud.update_item(user_id, **params.dict(exclude_none=True, exclude_unset=True))
+
+    @router.post("/{user_id}/add_dp", response_model=UserGet)
+    def add_profile_pic(self, user_id: int, description: str = Form(''), file: UploadFile = File(...)):
+        dp = self.media_service.upload_media(alt_text=description, file=file)
+        user = self.crud.update_item(user_id, profile_pic_id=dp.get('id'))
+        return user
 
 
 @cbv(router)
@@ -93,26 +99,12 @@ class MediaAPI:
 
     def __init__(self, session=Depends(get_db)):
         self.session = session
-        self.crud = MediaCrud(self.session)
+        self.media_service = MediaService(self.session)
 
     @router.post("/upload")
     def upload_file(self, description: str = Form(''), file: UploadFile = File(...)):
-        try:
-            data = file.file.read()
-            name = file.filename
-            content_type = file.content_type
-            item = MediaCreate(filename=name, content_type=content_type, blob=data, alt_text=description)
-            obj = self.crud.create_item(item)
-        except Exception as e:
-            return HTTPException(500, "Could not upload media")
-
-        return obj.to_dict()
+        return self.media_service.upload_media(description, file)
 
     @router.get('/{file_id}')
     def get_file(self, file_id: int):
-        obj = self.crud.get_item(file_id)
-        path = f'media/{obj.filename}'
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, 'wb') as f:
-            f.write(BytesIO(obj.blob).getbuffer())  # noqa
-        return {**obj.to_dict(), 'filepath': os.path.abspath(path)}
+        return self.media_service.get_media(file_id)
