@@ -11,7 +11,7 @@ from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
 
 from content.crud import UserCrud, PostCrud, MediaCrud
-from content.schemas.media import MediaGet, MediaCreate
+from content.schemas.media import MediaCreate
 from content.schemas.post import PostCreate, PostSearch, PostUpdate
 from content.schemas.user import UserCreate, UserGet, UserUpdate
 from db import get_db
