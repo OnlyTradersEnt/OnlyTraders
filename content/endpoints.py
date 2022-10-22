@@ -12,7 +12,7 @@ from fastapi_restful.inferring_router import InferringRouter
 from content.crud import UserCrud, PostCrud
 from content.schemas.post import PostCreate, PostSearch, PostUpdate
 from content.schemas.user import UserCreate, UserGet, UserUpdate, UserFilters
-from content.service import MediaService
+from content.service import MediaService, AuthenticationService
 from db import get_db
 
 router = InferringRouter()  # import this router in main and include it in app
@@ -30,9 +30,11 @@ class UserAPI:
         self.session = session
         self.crud = UserCrud(self.session)
         self.media_service = MediaService(self.session)
+        self.auth = AuthenticationService()
 
     @router.post("/create")
     def create_user(self, user: UserCreate):
+        user.hashed_password = self.auth.get_password_hash(user.hashed_password)
         return self.crud.create_item(user)
 
     @router.get("/repository", response_model=List[UserGet])

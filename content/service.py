@@ -1,6 +1,7 @@
 import os
 
 from fastapi import UploadFile
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from content.crud import MediaCrud
@@ -13,7 +14,7 @@ class MediaService:
     def __init__(self, session: Session, *args, **kwargs):
         self.crud = MediaCrud(session)
 
-    def upload_media(self, alt_text: str, file: UploadFile,  *args, **kwargs):
+    def upload_media(self, alt_text: str, file: UploadFile, *args, **kwargs):
         data = file.file.read()
         item = MediaCreate(filename=file.filename, content_type=file.content_type, blob=data, alt_text=alt_text)
         obj = self.crud.create_item(item)
@@ -26,3 +27,10 @@ class MediaService:
         with open(path, 'wb') as f:
             f.write(BytesIO(obj.blob).getbuffer())  # noqa
         return {**obj.to_dict(), 'filepath': os.path.abspath(path)}
+
+
+class AuthenticationService:
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    def get_password_hash(self, password: str):
+        return self.pwd_context.hash(password)
