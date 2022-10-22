@@ -37,13 +37,19 @@ class User(Base):
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
     create_time = Column(Date, nullable=False, default=date.today())
+
     profile_pic_id = Column(Integer, ForeignKey('media.id'), nullable=True)
     profile_pic = relationship("Media")
+
+    posts = relationship('Post', back_populates='creator')
 
 
 class Post(Base):
     __tablename__ = "post"
 
     id = Column(Integer, primary_key=True, index=True)
+    creator_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    creator = relationship('User', back_populates='posts')
+
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)

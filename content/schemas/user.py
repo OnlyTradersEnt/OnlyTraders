@@ -1,8 +1,9 @@
 from datetime import date
-from typing import Optional, Union
+from typing import Optional
 
-from fastapi import Query, UploadFile, File
+from fastapi import Query
 from pydantic import BaseModel, EmailStr
+from content.schemas.media import ShowMedia
 
 
 class UserCreate(BaseModel):
@@ -21,13 +22,13 @@ class UserFilters(BaseModel):
     create_time: Optional[date] = Query()
 
 
-class UserGet(BaseModel):
+class ShowUser(BaseModel):
     id: int
     username: str
     email: EmailStr
     is_active: bool
     create_time: date
-    profile_pic_id: int
+    profile_pic: Optional[ShowMedia] = None
 
     class Config:
         orm_mode = True

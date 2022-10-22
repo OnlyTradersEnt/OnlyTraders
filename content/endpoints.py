@@ -10,8 +10,8 @@ from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
 
 from content.crud import UserCrud, PostCrud
-from content.schemas.post import PostCreate, PostSearch, PostUpdate
-from content.schemas.user import UserCreate, UserGet, UserUpdate, UserFilters
+from content.schemas.post import PostCreate, PostSearch, PostUpdate, ShowPost
+from content.schemas.user import UserCreate, UserUpdate, UserFilters, ShowUser
 from content.service import MediaService, AuthenticationService
 from db import get_db
 
@@ -37,12 +37,12 @@ class UserAPI:
         user.hashed_password = self.auth.get_password_hash(user.hashed_password)
         return self.crud.create_item(user)
 
-    @router.get("/repository", response_model=List[UserGet])
+    @router.get("/repository", response_model=List[ShowUser])
     def read_users(self, limit: int = 100, filters: UserFilters = Depends()):
         users = self.crud.get_items(limit, **filters.dict(exclude_unset=True, exclude_none=True))
         return users
 
-    @router.get("/{user_id}", response_model=UserGet)
+    @router.get("/{user_id}", response_model=ShowUser)
     def read_user(self, user_id: int):
         db_user = self.crud.get_item(pk=user_id)
         return db_user
@@ -51,15 +51,20 @@ class UserAPI:
     def delete_user(self, user_id: int):
         return self.crud.delete_item(user_id)
 
-    @router.put("/{user_id}", response_model=UserGet)
+    @router.put("/{user_id}", response_model=ShowUser)
     def update_user(self, user_id: int, params: UserUpdate):
         return self.crud.update_item(user_id, **params.dict(exclude_none=True, exclude_unset=True))
 
-    @router.post("/{user_id}/add_dp", response_model=UserGet)
+    @router.post("/{user_id}/add_dp", response_model=ShowUser)
     def add_profile_pic(self, user_id: int, description: str = Form(''), file: UploadFile = File(...)):
         dp = self.media_service.upload_media(alt_text=description, file=file)
         user = self.crud.update_item(user_id, profile_pic_id=dp.get('id'))
         return user
+
+    @router.get('/{user_id}/all_posts', response_model=List[ShowPost])
+    def get_user_posts(self, user_id: int, limit: int = 100):
+        user = self.crud.get_item(user_id)
+        return user.posts  # todo need to use limit here
 
 
 @cbv(router)
@@ -75,12 +80,12 @@ class PostAPI:
     def create_post(self, post: PostCreate):
         return self.crud.create_item(post)
 
-    @router.get("/repository")
+    @router.get("/repository", response_model=List[ShowPost])
     def read_posts(self, limit: int = 100, filters: PostSearch = Depends()):
         posts = self.crud.get_items(limit, **filters.dict(exclude_none=True, exclude_unset=True))
         return posts
 
-    @router.get("/{post_id}")
+    @router.get("/{post_id}", response_model=ShowPost)
     def read_post(self, post_id: int):
         post = self.crud.get_item(pk=post_id)
         return post
