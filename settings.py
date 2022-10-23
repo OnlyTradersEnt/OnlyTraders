@@ -7,6 +7,10 @@ PROJECT_NAME = "OnlyTraders"
 PROJECT_DESCRIPTION = "OnlyTraders API project"
 PROJECT_VERSION = "1.0"
 
+# Authentication
+SECRET_KEY = "393e8ccc16ad95f541248f3ff582726ee916bb923488e6165a37a68fb96f631b"  # use command openssl rand -hex 32
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Database Settings
 POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
@@ -17,3 +21,5 @@ POSTGRES_DB: str = os.getenv("POSTGRES_DB", "sample_db")
 
 DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
+# Login Settings
+LOGIN_URL = '/auth/login'

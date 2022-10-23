@@ -62,6 +62,10 @@ class UserCrud(AbstractCrud):
         self.session = session
         self.model = User
 
+    def get_user(self,**filters):
+        """ get single user by filters """
+        return self.get_items(limit=1, **filters)[0]
+
 
 class PostCrud(AbstractCrud):
 
