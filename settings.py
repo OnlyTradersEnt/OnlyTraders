@@ -7,6 +7,10 @@ PROJECT_NAME = "OnlyTraders"
 PROJECT_DESCRIPTION = "OnlyTraders API project"
 PROJECT_VERSION = "1.0"
 
+ALLOWED_HOSTS = ['*']
+
+DEBUG = True
+
 # Authentication
 SECRET_KEY = "393e8ccc16ad95f541248f3ff582726ee916bb923488e6165a37a68fb96f631b"  # use command openssl rand -hex 32
 ALGORITHM = "HS256"
