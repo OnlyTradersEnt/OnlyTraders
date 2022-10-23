@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import Query
 from pydantic import BaseModel, EmailStr
@@ -38,3 +38,12 @@ class UserUpdate(BaseModel):
     """ Query params for update request """
     username: Optional[str]
     is_active: Optional[bool]
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: Union[str, None] = None
