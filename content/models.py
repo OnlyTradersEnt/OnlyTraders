@@ -42,6 +42,7 @@ class User(Base):
     profile_pic = relationship("Media")
 
     posts = relationship('Post', back_populates='creator')
+    comments = relationship('Comment', back_populates='creator')
 
 
 class Post(Base):
@@ -53,3 +54,18 @@ class Post(Base):
 
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
+
+    comments = relationship('Comment', back_populates='post')
+
+
+class Comment(Base):
+    __tablename__ = "comment"
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(String, nullable=False)
+
+    creator_id = Column(Integer, ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    creator = relationship('User', back_populates='comments')
+
+    post_id = Column(Integer, ForeignKey('post.id', ondelete='CASCADE'), nullable=False)
+    post = relationship('Post', back_populates='comments')

@@ -10,8 +10,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_restful.cbv import cbv
 from fastapi_restful.inferring_router import InferringRouter
 
-from content.crud import UserCrud, PostCrud
+from content.crud import UserCrud, PostCrud, CommentCrud
 from content.models import User
+from content.schemas.comment import ShowComment, CommentSearch, CommentUpdate, CommentCreate
 from content.schemas.post import PostCreate, PostSearch, PostUpdate, ShowPost
 from content.schemas.user import UserCreate, UserUpdate, UserFilters, ShowUser, Token
 from content.service import MediaService, AuthenticationService
@@ -90,6 +91,11 @@ class UserAPI:
         user = self.crud.get_item(user_id)
         return user.posts  # todo need to use limit here
 
+    @router.get('/{user_id}/all_comments', response_model=List[ShowComment])
+    async def get_user_comments(self, user_id: int, limit: int = 100):
+        user = self.crud.get_item(user_id)
+        return user.comments  # todo need to use limit here
+
     @router.get("/users/me/", response_model=ShowUser)
     async def get_current_user(self, current_user: User = Depends(AuthenticationService.get_current_user)):
         return current_user
@@ -125,6 +131,43 @@ class PostAPI:
     @router.put("/{post_id}")
     async def update_post(self, post_id: int, params: PostUpdate):
         return self.crud.update_item(post_id, **params.dict(exclude_none=True, exclude_unset=True))
+
+    @router.get("/{post_id}/comments", response_model=List[ShowComment])
+    async def get_comments(self, post_id: int, limit: int = 100):
+        post = self.crud.get_item(post_id)
+        return post.comments
+
+
+@cbv(router)
+class CommentAPI:
+    router.tags = ["Comment"]
+    router.prefix = "/comments"
+
+    def __init__(self, session=Depends(get_db), user: User = Depends(AuthenticationService.get_current_user)):
+        self.session = session
+        self.crud = CommentCrud(self.session)
+
+    @router.post("/create")
+    async def create_comment(self, comment: CommentCreate):
+        return self.crud.create_item(comment)
+
+    @router.get("/repository", response_model=List[ShowComment])
+    async def read_comments(self, limit: int = 100, filters: CommentSearch = Depends()):
+        comments = self.crud.get_items(limit, **filters.dict(exclude_none=True, exclude_unset=True))
+        return comments
+
+    @router.get("/{comment_id}", response_model=ShowComment)
+    async def read_comment(self, post_id: int):
+        comment = self.crud.get_item(pk=post_id)
+        return comment
+
+    @router.delete("/{comment_id}")
+    async def delete_comment(self, comment_id: int):
+        return self.crud.delete_item(comment_id)
+
+    @router.put("/{comment_id}")
+    async def update_comment(self, comment_id: int, params: CommentUpdate):
+        return self.crud.update_item(comment_id, **params.dict(exclude_none=True, exclude_unset=True))
 
 
 @cbv(router)

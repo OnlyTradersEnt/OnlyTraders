@@ -12,7 +12,7 @@ from pydantic.main import BaseModel
 from sqlalchemy.orm import Session
 
 from db import Base
-from .models import User, Post, Media
+from .models import User, Post, Media, Comment
 
 
 class AbstractCrud:
@@ -72,6 +72,12 @@ class PostCrud(AbstractCrud):
     def __init__(self, session: Session):
         self.session = session
         self.model = Post
+
+
+class CommentCrud(AbstractCrud):
+    def __init__(self, session: Session):
+        self.session = session
+        self.model = Comment
 
 
 class MediaCrud(AbstractCrud):
