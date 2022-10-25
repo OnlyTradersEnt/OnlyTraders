@@ -3,6 +3,8 @@
 import os
 
 # Project Details
+from fileinput import filename
+
 PROJECT_NAME = "OnlyTraders"
 PROJECT_DESCRIPTION = "OnlyTraders API project"
 PROJECT_VERSION = "1.0"
@@ -24,6 +26,30 @@ POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", 5432)
 POSTGRES_DB: str = os.getenv("POSTGRES_DB", "sample_db")
 
 DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+# Logging settings
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {
+            "format": '%(asctime)s %(levelname)-8s %(name)s: %(message)s'
+        }
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.handlers.WatchedFileHandler",
+            "formatter": "simple",
+            "filename": "app.log"
+        }
+    },
+    "root": {
+        "level": "DEBUG",
+        "handlers": [
+            "file"
+        ]
+    }
+}
 
 # Login Settings
 LOGIN_URL = '/auth/login'
