@@ -44,6 +44,16 @@ class AuthAPI:
             "token_type": "bearer"
         }
 
+    @router.post('/signup', response_model=Token)
+    async def signup(self, user: UserCreate):
+        user.hashed_password = AuthenticationService.get_password_hash(user.hashed_password)
+        user = self.crud.create_item(user)
+        access_token = AuthenticationService.create_access_token(data={"sub": user.username})
+        return {
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
+
     # todo add logout endpoint to invalidate token?
 
 

@@ -19,13 +19,26 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Database Settings
-POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "dev123")
-POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "127.0.0.1")
-POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", 5432)
-POSTGRES_DB: str = os.getenv("POSTGRES_DB", "sample_db")
+DATABASES = {
+    'default': {
+        'USER': os.getenv("POSTGRES_USER", "postgres"),
+        'PASSWORD': os.getenv("POSTGRES_PASSWORD", "dev123"),
+        'SERVER': os.getenv("POSTGRES_SERVER", "127.0.0.1"),
+        'PORT':  os.getenv("POSTGRES_PORT", 5432),
+        'DB': os.getenv("POSTGRES_DB", "sample_db"),
+    },
+    'test': {
+        'USER': "postgres",
+        'PASSWORD': "dev123",
+        'SERVER': "127.0.0.1",
+        'PORT':  5432,
+        'DB': "test_db",
+    },
+}
 
-DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DB}"
+DB = DATABASES['test']
+
+DATABASE_URL = f"postgresql://{DB['USER']}:{DB['PASSWORD']}@{DB['SERVER']}:{DB['PORT']}/{DB['DB']}"
 
 # Logging settings
 LOGGING = {
